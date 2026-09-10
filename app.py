@@ -92,8 +92,6 @@ t = translations[language]  # Load text dictionary based on language choice
 
 user_location = st.sidebar.selectbox(t["market_loc"], ["Hubballi", "Dharwad", "Belagavi", "Bengaluru"])
 
-st.sidebar.markdown("---")
-st.sidebar.info("Demo Mode: Controlled dataset active for hackathon presentation.")
 
 # App Header using translated strings
 st.title(t["title"])
