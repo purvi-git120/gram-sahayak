@@ -459,41 +459,66 @@ with tab2:
 
 # ----------------- TAB 3: FINANCIAL ASSISTANT -----------------
 with tab3:
-    st.header(t["tab3"])
-    st.write("Calculate your expected profit or loan EMI instantly.")
+    st.header("💰 " + tr("finance_title"))
     
-    calc_type = st.radio(t["calc_type"], [t["profit_calc"], t["emi_calc"]])
-    
-    if calc_type == t["profit_calc"]:
-        qty = st.number_input(t["qty_label"], min_value=0.0, value=0.0, step=1.0)
-        buy_price = st.number_input(t["buy_label"], min_value=0.0, value=0.0, step=1.0)
-        sell_price = st.number_input(t["sell_label"], min_value=0.0, value=0.0, step=1.0)
+    # Nested sub-tabs for Profit Estimation and Loan EMI Calculator
+    fin_tab1, fin_tab2 = st.tabs([tr("profit_tab"), tr("emi_tab")])
+
+    # Sub-Tab 1: Profit Estimation Calculator
+    with fin_tab1:
+        st.subheader(tr("profit_est"))
+        col1, col2 = st.columns(2)
+        with col1:
+            quantity = st.number_input(tr("quantity"), min_value=1.0, value=100.0)
+            purchase_price = st.number_input(tr("purchase"), min_value=0.0, value=20.0)
+        with col2:
+            selling_price = st.number_input(tr("selling"), min_value=0.0, value=30.0)
+            other_costs = st.number_input(tr("other"), min_value=0.0, value=0.0)
+
+        total_cost = quantity * purchase_price + other_costs
+        revenue = quantity * selling_price
+        profit = revenue - total_cost
+
+        a, b, c = st.columns(3)
+        a.metric(tr("total_cost"), money(total_cost))
+        b.metric(tr("revenue"), money(revenue))
+        c.metric(tr("profit"), money(profit))
+
+        if profit > 0:
+            st.success(tr("positive"))
+        elif profit == 0:
+            st.info(tr("break_even"))
+        else:
+            st.error(tr("loss"))
+
+    # Sub-Tab 2: Loan EMI Calculator
+    with fin_tab2:
+        # Clean up emoji if present in translation string for subheader display
+        emi_tab_title = tr("emi_tab").replace("🏦 ", "")
+        st.subheader(emi_tab_title)
         
-        if st.button(t["calc_profit_btn"]):
-            if qty <= 0 or buy_price <= 0 or sell_price <= 0:
-                st.warning(t["calc_warning"])
-            else:
-                total_purchase = qty * buy_price
-                total_sales = qty * sell_price
-                profit = total_sales - total_purchase
-                
-                st.write(f"* {t['total_purchase']}{total_purchase}")
-                st.write(f"* {t['total_sales']}{total_sales}")
-                if profit >= 0:
-                    st.success(t["est_profit"].format(profit=profit))
-                else:
-                    st.error(t["est_loss"].format(loss=abs(profit)))
-                
-    else:
-        loan_amt = st.number_input(t["loan_label"], min_value=0.0, value=0.0, step=1000.0)
-        interest_rate = st.number_input(t["rate_label"], min_value=0.0, value=0.0, step=0.5)
-        years = st.number_input(t["years_label"], min_value=0.0, value=0.0, step=1.0)
+        col1, col2, col3 = st.columns(3)
+        with col1:
+            principal = st.number_input(tr("loan"), min_value=1000.0, value=100000.0, step=5000.0)
+        with col2:
+            annual_rate = st.number_input(tr("rate"), min_value=0.0, value=10.0, step=0.5)
+        with col3:
+            years = st.number_input(tr("period"), min_value=1, value=3)
+
+        months = years * 12
+        monthly_rate = annual_rate / 12 / 100
         
-        if st.button(t["calc_emi_btn"]):
-            if loan_amt <= 0 or interest_rate <= 0 or years <= 0:
-                st.warning(t["loan_warning"])
-            else:
-                r = (interest_rate / 12) / 100
-                n = years * 12
-                emi = (loan_amt * r * ((1 + r)**n)) / (((1 + r)**n) - 1)
-                st.success(t["emi_result"].format(emi=round(emi, 2)))
+        if monthly_rate == 0:
+            emi = principal / months
+        else:
+            emi = principal * monthly_rate * (1 + monthly_rate) ** months / ((1 + monthly_rate) ** months - 1)
+
+        total_payment = emi * months
+        total_interest = total_payment - principal
+
+        a, b, c = st.columns(3)
+        a.metric(tr("monthly"), money(emi))
+        b.metric(tr("total_payment"), money(total_payment))
+        c.metric(tr("interest"), money(total_interest))
+        
+        st.caption(tr("loan_note"))
