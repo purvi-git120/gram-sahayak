@@ -209,7 +209,7 @@ with tab1:
             
     st.markdown("---")
     st.subheader("🧺 Crop Market Board")
-    st.write(f"Showing 46 crops for the selected demonstration market: {user_location}")
+    st.write(f"Showing  crops for the selected demonstration market: {user_location}")
     
     # Display cards in a 4-column layout with dark readable text on white background
     col1, col2, col3, col4 = st.columns(4)
