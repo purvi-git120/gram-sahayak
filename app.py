@@ -287,15 +287,175 @@ with tab2:
     st.header(t["tab2"])
     st.write("Find out which business or agricultural schemes you qualify for.")
     
-    business_type = st.selectbox(t["business_prompt"], [t["select_business_default"], "Small Vegetable Vendor", "Dairy Farmer", "Handicraft Artisan", "General Retail"])
-    
-    if st.button(t["find_scheme_btn"]):
-        if business_type == t["select_business_default"]:
-            st.warning(t["select_business_warning"])
-        elif business_type == "Small Vegetable Vendor":
-            st.info(f"{t['scheme_pv_title']}\n\n* **{t['scheme_pv_benefit']}**\n* **{t['scheme_pv_eligibility']}**\n* **{t['scheme_pv_step']}**")
-        else:
-            st.info(f"{t['scheme_mudra_title']}\n\n* **{t['scheme_mudra_benefit']}**\n* **{t['scheme_mudra_eligibility']}**\n* **{t['scheme_mudra_step']}**")
+    # Comprehensive Scheme Dataset for Rural Micro-Entrepreneurs & Farmers
+    SCHEMES = [
+        {
+            "name": "PMEGP (Prime Minister's Employment Generation Programme)",
+            "best_for": "New micro-enterprises in manufacturing and eligible service/non-farm activities.",
+            "description": "A credit-linked government programme that supports new micro-enterprises through bank finance and margin-money subsidy. It is designed to create self-employment and employment opportunities, especially for rural and aspiring entrepreneurs.",
+            "key": "Credit-linked subsidy up to 15% to 35% of project cost depending on category and area.",
+            "why": "Ideal for setting up small manufacturing units, rural workshops, or agro-processing ventures.",
+            "source": "Ministry of Micro, Small and Medium Enterprises (MSME)"
+        },
+        {
+            "name": "PM Mudra Yojana (PMMY)",
+            "best_for": "Small businesses needing working capital or business expansion finance.",
+            "description": "Provides collateral-free institutional credit for eligible micro enterprises in manufacturing, trading, services and allied agricultural activities.",
+            "key": "Loans categorized into Shishu (up to ₹50k), Kishor (₹50k–₹5L), and Tarun (₹5L–₹10L).",
+            "why": "Collateral-free nature makes it very accessible for local shopkeepers and micro-vendors.",
+            "source": "Department of Financial Services, Ministry of Finance"
+        },
+        {
+            "name": "PM SVANidhi (PM Street Vendor's AtmaNirbhar Nidhi)",
+            "best_for": "Eligible street vendors.",
+            "description": "A micro-credit and support programme for street vendors. The restructured scheme includes progressive working-capital loans, digital adoption incentives and broader livelihood support.",
+            "key": "Working capital loans starting at ₹10,000 with interest subsidies on timely repayment.",
+            "why": "Tailored specifically for mobile vendors and micro-retailers looking to expand stock or digitize payments.",
+            "source": "Ministry of Housing and Urban Affairs"
+        },
+        {
+            "name": "PM FME (Formalisation of Micro Food Processing Enterprises)",
+            "best_for": "Micro food-processing businesses and eligible SHGs/FPOs/cooperatives.",
+            "description": "Supports formalisation, upgrading and capacity building for micro food-processing enterprises. Eligible individual units can receive credit-linked capital subsidy subject to scheme conditions.",
+            "key": "35% capital subsidy for eligible micro food units with credit support.",
+            "why": "Best for pickle makers, flour mills, spice grinders, and local food packaging units.",
+            "source": "Ministry of Food Processing Industries"
+        },
+        {
+            "name": "Kisan Credit Card (KCC)",
+            "best_for": "Farmers and eligible agricultural/allied activities.",
+            "description": "Provides formal credit access for agricultural and allied working-capital needs, subject to lending and eligibility conditions.",
+            "key": "Timely short-term credit with interest subvention options for farmers.",
+            "why": "Helps cover seasonal crop cultivation expenses, post-harvest costs, and maintenance of farm assets.",
+            "source": "Ministry of Agriculture and Farmers Welfare / NABARD"
+        },
+        {
+            "name": "Agriculture Infrastructure Fund (AIF)",
+            "best_for": "Post-harvest infrastructure and eligible community farming assets.",
+            "description": "Provides financing support for eligible agriculture infrastructure such as post-harvest management and community farming assets.",
+            "key": "Interest subvention of 3% per annum up to ₹2 crore for viable agriculture infrastructure projects.",
+            "why": "Great for cold storage, sorting units, warehousing, and primary processing facilities.",
+            "source": "Ministry of Agriculture and Farmers Welfare"
+        },
+        {
+            "name": "Agri-Clinic and Agri-Business Centres (ACABC)",
+            "best_for": "Eligible agriculture-trained entrepreneurs providing farm-related services.",
+            "description": "Supports trained agricultural professionals/eligible candidates in setting up agri-clinics and agri-business centres that provide advisory and agricultural services to farmers.",
+            "key": "Subsidy-backed financial support through commercial banks for trained agri-graduates.",
+            "why": "Empowers skilled youth to offer soil testing, input supply, and extension services locally.",
+            "source": "Ministry of Agriculture and Farmers Welfare"
+        },
+        {
+            "name": "Deendayal Antyodaya Yojana - NRLM (DAY-NRLM)",
+            "best_for": "Rural women-led Self Help Groups and rural livelihoods.",
+            "description": "A rural livelihoods programme that works through Self Help Groups and community institutions to improve access to finance, skills, enterprise support and sustainable livelihoods.",
+            "key": "Revolving fund and community investment support for networked Self Help Groups (SHGs).",
+            "why": "Crucial for community-led micro-enterprises and group-based village economic activities.",
+            "source": "Ministry of Rural Development"
+        },
+        {
+            "name": "PM Vishwakarma Scheme",
+            "best_for": "Eligible traditional artisans and craftspeople.",
+            "description": "Supports eligible traditional artisans and craftspeople with recognition, skill development, toolkit support, credit and market-oriented assistance under the scheme.",
+            "key": "End-to-end support including PM Vishwakarma certificate, toolkit incentive up to ₹15,000, and collateral-free credit.",
+            "why": "Designed specifically for traditional craftsmen like carpenters, blacksmiths, potters, and weavers.",
+            "source": "Ministry of Micro, Small and Medium Enterprises (MSME)"
+        },
+        {
+            "name": "PM-KUSUM (Pradhan Mantri Kisan Urja Suraksha evam Utthaan Mahabhiyan)",
+            "best_for": "Eligible farmers and agricultural energy/solar applications.",
+            "description": "Supports solar-energy-related interventions in agriculture, including eligible solar pumps and other components under the scheme.",
+            "key": "Financial assistance to install standalone solar pumps and grid-connected solar power plants.",
+            "why": "Helps farmers secure reliable daytime solar power for irrigation and reduce diesel dependence.",
+            "source": "Ministry of New and Renewable Energy (MNRE)"
+        }
+    ]
+
+    # Search Box for filtering schemes dynamically
+    search_query = st.text_input("🔎 Search Schemes", placeholder="e.g., loan, subsidy, vendor, food...")
+
+    # Filter schemes based on search query
+    shown_schemes = []
+    for scheme in SCHEMES:
+        searchable_text = (scheme["name"] + " " + scheme["best_for"] + " " +
+                           scheme["description"] + " " + scheme["why"]).lower()
+        if not search_query or search_query.lower() in searchable_text:
+            shown_schemes.append(scheme)
+
+    # Dictionary for translating scheme descriptions/best_for text dynamically into Hindi and Kannada
+    SCHEME_TRANSLATIONS = {
+        "Hindi (हिन्दी)": {
+            "best": {
+                "New micro-enterprises in manufacturing and eligible service/non-farm activities.": "विनिर्माण और पात्र सेवा/गैर-कृषि गतिविधियों वाले नए सूक्ष्म उद्यम।",
+                "Small businesses needing working capital or business expansion finance.": "कार्यशील पूंजी या व्यवसाय विस्तार के लिए वित्त की जरूरत वाले छोटे व्यवसाय।",
+                "Eligible street vendors.": "पात्र स्ट्रीट वेंडर।",
+                "Micro food-processing businesses and eligible SHGs/FPOs/cooperatives.": "सूक्ष्म खाद्य-प्रसंस्करण व्यवसाय और पात्र SHG/FPO/सहकारी संस्थाएँ।",
+                "Farmers and eligible agricultural/allied activities.": "किसान और पात्र कृषि/संबद्ध गतिविधियाँ।",
+                "Post-harvest infrastructure and eligible community farming assets.": "फसल कटाई के बाद की अवसंरचना और पात्र सामुदायिक कृषि परिसंपत्तियाँ।",
+                "Eligible agriculture-trained entrepreneurs providing farm-related services.": "पात्र कृषि-प्रशिक्षित उद्यमी जो कृषि संबंधी सेवाएँ देते हैं।",
+                "Rural women-led Self Help Groups and rural livelihoods.": "ग्रामीण महिलाओं के नेतृत्व वाले स्वयं सहायता समूह और ग्रामीण आजीविका।",
+                "Eligible traditional artisans and craftspeople.": "पात्र पारंपरिक कारीगर और शिल्पकार।",
+                "Eligible farmers and agricultural energy/solar applications.": "पात्र किसान और कृषि ऊर्जा/सौर अनुप्रयोग।"
+            },
+            "desc": {
+                "A credit-linked government programme that supports new micro-enterprises through bank finance and margin-money subsidy. It is designed to create self-employment and employment opportunities, especially for rural and aspiring entrepreneurs.": "यह बैंक वित्त और मार्जिन-मनी सब्सिडी के माध्यम से नए सूक्ष्म उद्यमों को सहायता देने वाला क्रेडिट-लिंक्ड सरकारी कार्यक्रम है। इसका उद्देश्य विशेष रूप से ग्रामीण और नए उद्यमियों के लिए स्वरोजगार और रोजगार के अवसर बनाना है।",
+                "Provides collateral-free institutional credit for eligible micro enterprises in manufacturing, trading, services and allied agricultural activities.": "विनिर्माण, व्यापार, सेवा और संबद्ध कृषि गतिविधियों वाले पात्र सूक्ष्म उद्यमों के लिए बिना जमानत संस्थागत ऋण उपलब्ध कराता है।",
+                "A micro-credit and support programme for street vendors. The restructured scheme includes progressive working-capital loans, digital adoption incentives and broader livelihood support.": "स्ट्रीट वेंडरों के लिए सूक्ष्म ऋण और सहायता कार्यक्रम। पुनर्गठित योजना में क्रमिक कार्यशील पूंजी ऋण, डिजिटल अपनाने के प्रोत्साहन और व्यापक आजीविका सहायता शामिल है।",
+                "Supports formalisation, upgrading and capacity building for micro food-processing enterprises. Eligible individual units can receive credit-linked capital subsidy subject to scheme conditions.": "सूक्ष्म खाद्य-प्रसंस्करण उद्यमों के औपचारिकीकरण, उन्नयन और क्षमता निर्माण में सहायता करता है। पात्र व्यक्तिगत इकाइयों को योजना की शर्तों के अनुसार क्रेडिट-लिंक्ड पूंजी सब्सिडी मिल सकती है।",
+                "Provides formal credit access for agricultural and allied working-capital needs, subject to lending and eligibility conditions.": "कृषि और संबद्ध कार्यशील पूंजी जरूरतों के लिए पात्रता और ऋण शर्तों के अनुसार औपचारिक ऋण सुविधा प्रदान करता है।",
+                "Provides financing support for eligible agriculture infrastructure such as post-harvest management and community farming assets.": "फसल कटाई के बाद प्रबंधन और सामुदायिक कृषि परिसंपत्तियों जैसी पात्र कृषि अवसंरचना के लिए वित्तीय सहायता प्रदान करता है।",
+                "Supports trained agricultural professionals/eligible candidates in setting up agri-clinics and agri-business centres that provide advisory and agricultural services to farmers.": "प्रशिक्षित कृषि पेशेवरों/पात्र उम्मीदवारों को किसानों के लिए सलाह और कृषि सेवाएँ देने वाले एग्री-क्लिनिक और एग्री-बिजनेस केंद्र स्थापित करने में सहायता करता है।",
+                "A rural livelihoods programme that works through Self Help Groups and community institutions to improve access to finance, skills, enterprise support and sustainable livelihoods.": "स्वयं सहायता समूहों और सामुदायिक संस्थाओं के माध्यम से वित्त, कौशल, उद्यम सहायता और टिकाऊ आजीविका तक पहुँच बेहतर करने वाला ग्रामीण आजीविका कार्यक्रम।",
+                "Supports eligible traditional artisans and craftspeople with recognition, skill development, toolkit support, credit and market-oriented assistance under the scheme.": "पात्र पारंपरिक कारीगरों और शिल्पकारों को पहचान, कौशल विकास, टूलकिट, ऋण और बाजार-उन्मुख सहायता प्रदान करता है।",
+                "Supports solar-energy-related interventions in agriculture, including eligible solar pumps and other components under the scheme.": "कृषि में सौर ऊर्जा से जुड़े उपायों, पात्र सौर पंपों और योजना के अन्य घटकों को सहायता देता है।"
+            }
+        },
+        "Kannada (ಕನ್ನಡ)": {
+            "best": {
+                "New micro-enterprises in manufacturing and eligible service/non-farm activities.": "ಉತ್ಪಾದನೆ ಮತ್ತು ಅರ್ಹ ಸೇವೆ/ಕೃಷಿಯೇತರ ಚಟುವಟಿಕೆಗಳ ಹೊಸ ಸಣ್ಣ ಉದ್ಯಮಗಳು.",
+                "Small businesses needing working capital or business expansion finance.": "ಕಾರ್ಯನಿರ್ವಹಣಾ ಬಂಡವಾಳ ಅಥವಾ ವ್ಯವಹಾರ ವಿಸ್ತರಣೆಗೆ ಹಣಕಾಸು ಬೇಕಿರುವ ಸಣ್ಣ ವ್ಯವಹಾರಗಳು.",
+                "Eligible street vendors.": "ಅರ್ಹ ಬೀದಿ ವ್ಯಾಪಾರಿಗಳು.",
+                "Micro food-processing businesses and eligible SHGs/FPOs/cooperatives.": "ಸಣ್ಣ ಆಹಾರ ಸಂಸ್ಕರಣಾ ವ್ಯವಹಾರಗಳು ಮತ್ತು ಅರ್ಹ SHG/FPO/ಸಹಕಾರಿ ಸಂಸ್ಥೆಗಳು.",
+                "Farmers and eligible agricultural/allied activities.": "ರೈತರು ಮತ್ತು ಅರ್ಹ ಕೃಷಿ/ಸಂಬಂಧಿತ ಚಟುವಟಿಕೆಗಳು.",
+                "Post-harvest infrastructure and eligible community farming assets.": "ಕೊಯ್ಲಿನ ನಂತರದ ಮೂಲಸೌಕರ್ಯ ಮತ್ತು ಅರ್ಹ ಸಮುದಾಯ ಕೃಷಿ ಆಸ್ತಿಗಳು.",
+                "Eligible agriculture-trained entrepreneurs providing farm-related services.": "ಕೃಷಿ ತರಬೇತಿ ಪಡೆದ ಅರ್ಹ ಉದ್ಯಮಿಗಳು ಮತ್ತು ಕೃಷಿ ಸಂಬಂಧಿತ ಸೇವಾ ಪೂರೈಕೆದಾರರು.",
+                "Rural women-led Self Help Groups and rural livelihoods.": "ಗ್ರಾಮೀಣ ಮಹಿಳೆಯರ ನೇತೃತ್ವದ ಸ್ವಸಹಾಯ ಗುಂಪುಗಳು ಮತ್ತು ಗ್ರಾಮೀಣ ಜೀವನೋಪಾಯ.",
+                "Eligible traditional artisans and craftspeople.": "ಅರ್ಹ ಸಾಂಪ್ರದಾಯಿಕ ಕುಶಲಕರ್ಮಿಗಳು ಮತ್ತು ಶಿಲ್ಪಿಗಳು.",
+                "Eligible farmers and agricultural energy/solar applications.": "ಅರ್ಹ ರೈತರು ಮತ್ತು ಕೃಷಿ ಶಕ್ತಿ/ಸೌರ ಅನ್ವಯಿಕೆಗಳು."
+            },
+            "desc": {
+                "A credit-linked government programme that supports new micro-enterprises through bank finance and margin-money subsidy. It is designed to create self-employment and employment opportunities, especially for rural and aspiring entrepreneurs.": "ಬ್ಯಾಂಕ್ ಹಣಕಾಸು ಮತ್ತು ಮಾರ್ಜಿನ್-ಮನಿ ಸಬ್ಸಿಡಿ ಮೂಲಕ ಹೊಸ ಸಣ್ಣ ಉದ್ಯಮಗಳಿಗೆ ಬೆಂಬಲ ನೀಡುವ ಕ್ರೆಡಿಟ್-ಲಿಂಕ್ಡ್ ಸರ್ಕಾರಿ ಕಾರ್ಯಕ್ರಮ. ವಿಶೇಷವಾಗಿ ಗ್ರಾಮೀಣ ಮತ್ತು ಹೊಸ ಉದ್ಯಮಿಗಳಿಗೆ ಸ್ವಯಂ ಉದ್ಯೋಗ ಹಾಗೂ ಉದ್ಯೋಗಾವಕಾಶಗಳನ್ನು ಸೃಷ್ಟಿಸುವುದು ಇದರ ಉದ್ದೇಶ.",
+                "Provides collateral-free institutional credit for eligible micro enterprises in manufacturing, trading, services and allied agricultural activities.": "ಉತ್ಪಾದನೆ, ವ್ಯಾಪಾರ, ಸೇವೆ ಮತ್ತು ಸಂಬಂಧಿತ ಕೃಷಿ ಚಟುವಟಿಕೆಗಳ ಅರ್ಹ ಸಣ್ಣ ಉದ್ಯಮಗಳಿಗೆ ಜಾಮೀನು ಇಲ್ಲದ ಸಂಸ್ಥಾತ್ಮಕ ಸಾಲ ಒದಗಿಸುತ್ತದೆ.",
+                "A micro-credit and support programme for street vendors. The restructured scheme includes progressive working-capital loans, digital adoption incentives and broader livelihood support.": "ಬೀದಿ ವ್ಯಾಪಾರಿಗಳಿಗೆ ಸೂಕ್ಷ್ಮ ಸಾಲ ಮತ್ತು ಬೆಂಬಲ ಕಾರ್ಯಕ್ರಮ. ಪರಿಷ್ಕೃತ ಯೋಜನೆಯಲ್ಲಿ ಹಂತ ಹಂತದ ಕಾರ್ಯನಿರ್ವಹಣಾ ಬಂಡವಾಳ ಸಾಲ, ಡಿಜಿಟಲ್ ಬಳಕೆಗೆ ಪ್ರೋತ್ಸಾಹ ಮತ್ತು ಜೀವನೋಪಾಯ ಬೆಂಬಲ ಸೇರಿವೆ.",
+                "Supports formalisation, upgrading and capacity building for micro food-processing enterprises. Eligible individual units can receive credit-linked capital subsidy subject to scheme conditions.": "ಸಣ್ಣ ಆಹಾರ ಸಂಸ್ಕರಣಾ ಉದ್ಯಮಗಳ ಔಪಚಾರಿಕೀಕರಣ, ಉನ್ನತೀಕರಣ ಮತ್ತು ಸಾಮರ್ಥ್ಯ ವೃದ್ಧಿಗೆ ಬೆಂಬಲ ನೀಡುತ್ತದೆ. ಅರ್ಹ ವೈಯಕ್ತಿಕ ಘಟಕಗಳಿಗೆ ಯೋಜನೆಯ ಷರತ್ತುಗಳಂತೆ ಕ್ರೆಡಿಟ್-ಲಿಂಕ್ಡ್ ಬಂಡವಾಳ ಸಬ್ಸಿಡಿ ದೊರೆಯಬಹುದು.",
+                "Provides formal credit access for agricultural and allied working-capital needs, subject to lending and eligibility conditions.": "ಕೃಷಿ ಮತ್ತು ಸಂಬಂಧಿತ ಕಾರ್ಯನಿರ್ವಹಣಾ ಬಂಡವಾಳ ಅಗತ್ಯಗಳಿಗೆ ಸಾಲ ಮತ್ತು ಅರ್ಹತಾ ಷರತ್ತುಗಳಂತೆ ಅಧಿಕೃತ ಸಾಲ ಸೌಲಭ್ಯ ಒದಗಿಸುತ್ತದೆ.",
+                "Provides financing support for eligible agriculture infrastructure such as post-harvest management and community farming assets.": "ಕೊಯ್ಲಿನ ನಂತರದ ನಿರ್ವಹಣೆ ಮತ್ತು ಸಮುದಾಯ ಕೃಷಿ ಆಸ್ತಿಗಳಂತಹ ಅರ್ಹ ಕೃಷಿ ಮೂಲಸೌಕರ್ಯಕ್ಕೆ ಹಣಕಾಸು ಬೆಂಬಲ ನೀಡುತ್ತದೆ.",
+                "Supports trained agricultural professionals/eligible candidates in setting up agri-clinics and agri-business centres that provide advisory and agricultural services to farmers.": "ತರಬೇತಿ ಪಡೆದ ಕೃಷಿ ವೃತ್ತಿಪರರು/ಅರ್ಹ ಅಭ್ಯರ್ಥಿಗಳು ರೈತರಿಗೆ ಸಲಹೆ ಮತ್ತು ಕೃಷಿ ಸೇವೆ ನೀಡುವ ಅಗ್ರಿ-ಕ್ಲಿನಿಕ್ ಮತ್ತು ಅಗ್ರಿ-ಬಿಸಿನೆಸ್ ಕೇಂದ್ರಗಳನ್ನು ಸ್ಥಾಪಿಸಲು ಬೆಂಬಲ ನೀಡುತ್ತದೆ.",
+                "A rural livelihoods programme that works through Self Help Groups and community institutions to improve access to finance, skills, enterprise support and sustainable livelihoods.": "ಸ್ವಸಹಾಯ ಗುಂಪುಗಳು ಮತ್ತು ಸಮುದಾಯ ಸಂಸ್ಥೆಗಳ ಮೂಲಕ ಹಣಕಾಸು, ಕೌಶಲ್ಯ, ಉದ್ಯಮ ಬೆಂಬಲ ಮತ್ತು ಶಾಶ್ವತ ಜೀವನೋಪಾಯಕ್ಕೆ ಪ್ರವೇಶವನ್ನು ಸುಧಾರಿಸುವ ಗ್ರಾಮೀಣ ಜೀವನೋಪಾಯ ಕಾರ್ಯಕ್ರಮ.",
+                "Supports eligible traditional artisans and craftspeople with recognition, skill development, toolkit support, credit and market-oriented assistance under the scheme.": "ಅರ್ಹ ಸಾಂಪ್ರದಾಯಿಕ ಕುಶಲಕರ್ಮಿಗಳು ಮತ್ತು ಶಿಲ್ಪಿಗಳಿಗೆ ಮಾನ್ಯತೆ, ಕೌಶಲ್ಯ ಅಭಿವೃದ್ಧಿ, ಟೂಲ್‌ಕಿಟ್, ಸಾಲ ಮತ್ತು ಮಾರುಕಟ್ಟೆ ಆಧಾರಿತ ಸಹಾಯ ನೀಡುತ್ತದೆ.",
+                "Supports solar-energy-related interventions in agriculture, including eligible solar pumps and other components under the scheme.": "ಅರ್ಹ ಸೌರ ಪಂಪ್‌ಗಳು ಮತ್ತು ಯೋಜನೆಯ ಇತರ ಘಟಕಗಳನ್ನು ಒಳಗೊಂಡಂತೆ ಕೃಷಿಯಲ್ಲಿ ಸೌರಶಕ್ತಿ ಸಂಬಂಧಿತ ಕ್ರಮಗಳಿಗೆ ಬೆಂಬಲ ನೀಡುತ್ತದೆ."
+            }
+        }
+    }
+
+    def get_scheme_text(kind, value):
+        return SCHEME_TRANSLATIONS.get(language, {}).get(kind, {}).get(value, value)
+
+    if not shown_schemes:
+        st.info("No matching schemes found. Try searching with a different keyword.")
+    else:
+        for scheme in shown_schemes:
+            with st.expander(scheme["name"]):
+                best_text = get_scheme_text('best', scheme['best_for'])
+                desc_text = get_scheme_text('desc', scheme['description'])
+                
+                st.markdown(f"**Best For:** {best_text}")
+                st.write(desc_text)
+                st.markdown(f"**Key Benefit:** {scheme['key']}")
+                st.markdown(f"**Why it helps:** {scheme['why']}")
+                st.caption(f"Official Data Source: {scheme['source']}")
+
+    st.warning("Note: Scheme rules, eligibility criteria, and financial caps are subject to government guidelines. Verify details with local branch offices or common service centers (CSCs) before applying.")
 
 # ----------------- TAB 3: FINANCIAL ASSISTANT -----------------
 with tab3:
