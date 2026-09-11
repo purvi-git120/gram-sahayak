@@ -457,7 +457,103 @@ with tab2:
 
     st.warning("Note: Scheme rules, eligibility criteria, and financial caps are subject to government guidelines. Verify details with local branch offices or common service centers (CSCs) before applying.")
 
-# ----------------- TAB 3: FINANCIAL ASSISTANT -----------------
+# ------------------------------------------------------------
+# TRANSLATION & UTILITY HELPERS (Ensure these are defined globally)
+# ------------------------------------------------------------
+
+# Ensure 'language' state variable is initialized (defaults to English if not set)
+if "language" not in st.session_state:
+    st.session_state["language"] = "English"
+
+language = st.session_state["language"]
+
+# Master translation dictionary containing finance UI strings
+GLOBAL_TR = {
+    "English": {
+        "finance_title": "Financial Assistant",
+        "profit_tab": "📊 Profit Estimator",
+        "emi_tab": "🏦 Loan EMI Calculator",
+        "profit_est": "Profit Estimation Calculator",
+        "quantity": "Quantity Sold",
+        "purchase": "Purchase Price per Unit",
+        "selling": "Selling Price per Unit",
+        "other": "Other/Operational Costs",
+        "total_cost": "Total Cost",
+        "revenue": "Total Revenue",
+        "profit": "Net Profit",
+        "positive": "Great! Your business model shows a net profit.",
+        "break_even": "You are at a break-even point (No profit, no loss).",
+        "loss": "Warning: Your current pricing results in a loss.",
+        "loan": "Loan Amount (₹)",
+        "rate": "Annual Interest Rate (%)",
+        "period": "Loan Period (Years)",
+        "monthly": "Monthly EMI",
+        "total_payment": "Total Payment",
+        "interest": "Total Interest Payable",
+        "loan_note": "Note: Actual loan terms, processing fees, and interest calculations may vary depending on bank policies and individual credit assessments."
+    },
+    "Hindi (हिन्दी)": {
+        "finance_title": "वित्तीय सहायक",
+        "profit_tab": "📊 लाभ अनुमानक",
+        "emi_tab": "🏦 ऋण ईएमआई कैलकुलेटर",
+        "profit_est": "लाभ अनुमान कैलकुलेटर",
+        "quantity": "बेची गई मात्रा",
+        "purchase": "प्रति यूनिट खरीद मूल्य",
+        "selling": "प्रति यूनिट बिक्री मूल्य",
+        "other": "अन्य/परिचालन लागत",
+        "total_cost": "कुल लागत",
+        "revenue": "कुल राजस्व",
+        "profit": "शुद्ध लाभ",
+        "positive": "बढ़िया! आपका व्यवसाय मॉडल शुद्ध लाभ दिखा रहा है।",
+        "break_even": "आप सम-विच्छेद (ब्रेक-इवन) बिंदु पर हैं (न लाभ, न हानि)।",
+        "loss": "चेतावनी: आपकी वर्तमान कीमत से नुकसान हो रहा है।",
+        "loan": "ऋण राशि (₹)",
+        "rate": "वार्षिक ब्याज दर (%)",
+        "period": "ऋण अवधि (वर्ष)",
+        "monthly": "मासिक ईएमआई",
+        "total_payment": "कुल भुगतान",
+        "interest": "देय कुल ब्याज",
+        "loan_note": "नोट: बैंक की नीतियों और व्यक्तिगत क्रेडिट मूल्यांकन के आधार पर वास्तविक ऋण शर्तें और ब्याज अलग हो सकते हैं।"
+    },
+    "Kannada (ಕನ್ನಡ)": {
+        "finance_title": "ಹಣಕಾಸು ಸಹಾಯಕ",
+        "profit_tab": "📊 ಲಾಭ ಅಂದಾಜು",
+        "emi_tab": "🏦 ಸಾಲ ಇಎಂಐ ಕ್ಯಾಲ್ಕುಲೇಟರ್",
+        "profit_est": "ಲಾಭ ಅಂದಾಜು ಕ್ಯಾಲ್ಕುಲೇಟರ್",
+        "quantity": "ಮಾರಾಟವಾದ ಪ್ರಮಾಣ",
+        "purchase": "ಪ್ರತಿ ಘಟಕಕ್ಕೆ ಖರೀದಿ ಬೆಲೆ",
+        "selling": "ಪ್ರತಿ ಘಟಕಕ್ಕೆ ಮಾರಾಟ ಬೆಲೆ",
+        "other": "ಇತರ/ಕಾರ್ಯಾಚರಣೆ ವೆಚ್ಚಗಳು",
+        "total_cost": "ಒಟ್ಟು ವೆಚ್ಚ",
+        "revenue": "ಒಟ್ಟು ಆದಾಯ",
+        "profit": "ನಿವ್ವಳ ಲಾಭ",
+        "positive": "ಅದ್ಭುತ! ನಿಮ್ಮ ವ್ಯವಹಾರ ಮಾದರಿಯು ನಿವ್ವಳ ಲಾಭವನ್ನು ತೋರಿಸುತ್ತಿದೆ.",
+        "break_even": "ನೀವು ಬ್ರೇಕ್-ಇವೆನ್ ಹಂತದಲ್ಲಿದ್ದೀರಿ (ಲಾಭವೂ ಇಲ್ಲ, ನಷ್ಟವೂ ಇಲ್ಲ).",
+        "loss": "ಎಚ್ಚರಿಕೆ: ನಿಮ್ಮ ಪ್ರಸ್ತುತ ಬೆಲೆ ನಿಗದಿಯಿಂದ ನಷ್ಟ ಉಂಟಾಗುತ್ತದೆ.",
+        "loan": "ಸಾಲದ ಮೊತ್ತ (₹)",
+        "rate": "ವಾರ್ಷಿಕ ಬಡ್ಡಿ ದರ (%)",
+        "period": "ಸಾಲದ ಅವಧಿ (ವರ್ಷಗಳು)",
+        "monthly": "ಮಾಸಿಕ ಇಎಂಐ",
+        "total_payment": "ಒಟ್ಟು ಪಾವತಿ",
+        "interest": "ಪಾವತಿಸಬೇಕಾದ ಒಟ್ಟು ಬಡ್ಡಿ",
+        "loan_note": "ಗಮನಿಸಿ: ಬ್ಯಾಂಕ್ ನೀತಿಗಳು ಮತ್ತು ವೈಯಕ್ತಿಕ ಕ್ರೆಡಿಟ್ ಮೌಲ್ಯಮಾಪನದ ಆಧಾರದ ಮೇಲೆ ವಾಸ್ತವ ಸಾಲದ ನಿಯಮಗಳು ಬದಲಾಗಬಹುದು."
+    }
+}
+
+def tr(key):
+    """Safe translation retrieval function"""
+    lang_dict = GLOBAL_TR.get(language, GLOBAL_TR["English"])
+    return lang_dict.get(key, GLOBAL_TR["English"].get(key, key))
+
+def money(amount):
+    """Currency formatter helper"""
+    return f"₹{amount:,.2f}"
+
+
+# ============================================================
+# TAB 3: FINANCIAL ASSISTANT (Corrected Block)
+# ============================================================
+
 with tab3:
     st.header("💰 " + tr("finance_title"))
     
@@ -493,7 +589,6 @@ with tab3:
 
     # Sub-Tab 2: Loan EMI Calculator
     with fin_tab2:
-        # Clean up emoji if present in translation string for subheader display
         emi_tab_title = tr("emi_tab").replace("🏦 ", "")
         st.subheader(emi_tab_title)
         
