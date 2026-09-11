@@ -3,6 +3,38 @@ import streamlit as st
 # Page Configuration
 st.set_page_config(page_title="Gram Sahayak", page_icon="🌾", layout="centered")
 
+# Custom styling to ensure dark theme and readable white card text
+st.markdown("""
+    <style>
+    .market-card {
+        background-color: #ffffff;
+        color: #0f172a;
+        border-radius: 1rem;
+        padding: 1.25rem;
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        height: 100%;
+    }
+    .card-title {
+        color: #0f172a !important;
+        font-weight: 700;
+        font-size: 1.25rem;
+    }
+    .card-category {
+        color: #4b5563 !important;
+        font-size: 0.875rem;
+        font-weight: 500;
+    }
+    .card-price {
+        color: #1f2937 !important;
+        font-weight: 800;
+        font-size: 1.5rem;
+    }
+    </style>
+""", unsafe_allow_html=True)
+
 # Translation Dictionary (Covers both UI and Outputs for all 3 languages)
 translations = {
     "English": {
@@ -174,6 +206,81 @@ with tab1:
             formatted_price = t["price_result"].format(crop=crop_input.capitalize(), location=user_location)
             st.success(formatted_price)
             st.caption(t["market_source"])
+            
+    st.markdown("---")
+    st.subheader("🧺 Crop Market Board")
+    st.write(f"Showing 46 crops for the selected demonstration market: {user_location}")
+    
+    # Display cards in a 4-column layout with dark readable text on white background
+    col1, col2, col3, col4 = st.columns(4)
+    
+    with col1:
+        st.markdown("""
+            <div class="market-card">
+                <div>
+                    <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
+                        <span style="font-size: 1.5rem;">🌾</span>
+                        <span class="card-title">Tomato</span>
+                    </div>
+                    <div class="card-category">Vegetable</div>
+                </div>
+                <div style="margin-top: 16px;">
+                    <div class="card-price">₹30.00 / kg</div>
+                    <div style="color: #059669; font-size: 0.875rem; font-weight: 600; margin-top: 4px;">📈 Increasing</div>
+                </div>
+            </div>
+        """, unsafe_allow_html=True)
+
+    with col2:
+        st.markdown("""
+            <div class="market-card">
+                <div>
+                    <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
+                        <span style="font-size: 1.5rem;">🌾</span>
+                        <span class="card-title">Onion</span>
+                    </div>
+                    <div class="card-category">Vegetable</div>
+                </div>
+                <div style="margin-top: 16px;">
+                    <div class="card-price">₹35.00 / kg</div>
+                    <div style="color: #2563eb; font-size: 0.875rem; font-weight: 600; margin-top: 4px;">➡️ Stable</div>
+                </div>
+            </div>
+        """, unsafe_allow_html=True)
+
+    with col3:
+        st.markdown("""
+            <div class="market-card">
+                <div>
+                    <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
+                        <span style="font-size: 1.5rem;">🌾</span>
+                        <span class="card-title">Potato</span>
+                    </div>
+                    <div class="card-category">Vegetable</div>
+                </div>
+                <div style="margin-top: 16px;">
+                    <div class="card-price">₹28.00 / kg</div>
+                    <div style="color: #2563eb; font-size: 0.875rem; font-weight: 600; margin-top: 4px;">➡️ Stable</div>
+                </div>
+            </div>
+        """, unsafe_allow_html=True)
+
+    with col4:
+        st.markdown("""
+            <div class="market-card">
+                <div>
+                    <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
+                        <span style="font-size: 1.5rem;">🌾</span>
+                        <span class="card-title">Carrot</span>
+                    </div>
+                    <div class="card-category">Vegetable</div>
+                </div>
+                <div style="margin-top: 16px;">
+                    <div class="card-price">₹40.00 / kg</div>
+                    <div style="color: #059669; font-size: 0.875rem; font-weight: 600; margin-top: 4px;">📈 Increasing</div>
+                </div>
+            </div>
+        """, unsafe_allow_html=True)
 
 # ----------------- TAB 2: GOVERNMENT SCHEMES -----------------
 with tab2:
